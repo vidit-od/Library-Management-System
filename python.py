@@ -1,7 +1,6 @@
 from logging import disable, log
 from os import stat
 from random import random
-import tkinter
 import mysql.connector
 from tkinter import *
 import random
@@ -14,9 +13,8 @@ mydb = mysql.connector.connect(
     host="localhost", user="root", password="vidit@OD7", database="library")
 mycursor = mydb.cursor()
 
-# contains widgets fro main page
 
-
+# contains widgets from main page
 def main():
     global options
     options = Frame(content)
@@ -47,13 +45,8 @@ def main():
         options, text="RETURN BOOKS TO LIBRARY", width=50, border=2, height=2, command=return_book)
     return_books_button.grid(row=4, column=0)
 
+
 # contains widget for add books page
-
-
-def return_book():
-    options.grid_forget()
-
-
 def add_book():
     # clearing content of main menu
     options.grid_forget()
@@ -95,16 +88,15 @@ def add_book():
 
     # submit all the data to db
     submit = Button(add_book_frame, text="SUBMIT", command=lambda: add_book_submit(
-        title.get(), author.get(), quantity.get()))
+        str(title.get()), str(author.get()), quantity.get()))
     submit.grid(row=3, column=1, pady=20)
 
     # go back to mainmenu
     back = Button(add_book_frame, text="BACK", command=lambda: back2menu(2))
     back.grid(row=3, column=0)
 
+
 # contains widget for commiting changes to db from add books section
-
-
 def add_book_submit(title, author, quantity):
     # condition to check if any of the entrys are blank ; this gives error in db
     if title == "" or author == "" or quantity == "":
@@ -116,12 +108,11 @@ def add_book_submit(title, author, quantity):
         # generate random bookid , ececute the sql insert query and commit
         BOOK_ID = random.randint(0, 100000)
         mycursor.execute(
-            f"INSERT INTO `library`.`books` (`BOOK_ID`, `BOOK_NAME`, `AUTHOR`, `QUANTITY`) VALUES ({BOOK_ID}, {title}, {author}, {quantity});")
+            f"INSERT INTO `library`.`books` (`BOOK_ID`, `BOOK_NAME`, `AUTHOR`, `QUANTITY`) VALUES('{BOOK_ID}', '{title}', '{author}', '{quantity}')")
         mydb.commit()
 
+
 # contains widgets for buying membership
-
-
 def buy_membership():
     options.grid_forget()
 
@@ -180,9 +171,8 @@ def buy_membership():
                     command=lambda: back2menu(3))
     backed.grid(row=8, column=0)
 
+
 # contains widgets for commiting changes to db from buy membership section
-
-
 def buy_membership_submit(name, phone, email, address):
     # checking if any of the fields were left blank or not
     if name == "" or phone == "" or email == "" or address == "":
@@ -193,13 +183,13 @@ def buy_membership_submit(name, phone, email, address):
     else:
         # if no entry blank; generate random id ; and save all data in db ; then commit
         member_id = random.randint(0, 1000000)
+        print(member_id, str(name), phone, str(email), str(address))
         mycursor.execute(
-            f"INSERT INTO `library`.`members` (`MEMBER_ID`, `MEMBER_NAME`, `RESIDENTIAL_ADDRESS`, `PHONE_NO`, `EMAIL_ADDRESS`) VALUES ({member_id}, {name}, {phone}, {email}, {address});")
+            f"INSERT INTO `library`.`members` (`MEMBER_ID`, `MEMBER_NAME`, `RESIDENTIAL_ADDRESS`, `PHONE_NO`, `EMAIL_ADDRESS`) VALUES ('{member_id}', '{name}', '{address}', '{phone}', '{email}');")
         mydb.commit()
 
+
 # contains widget for reverting membership
-
-
 def revert_membership():
     options.grid_forget()
     # Revert membership frame , all widgets will be inside this frame
@@ -237,9 +227,8 @@ def revert_membership():
                   command=lambda: back2menu(4))
     back.grid(row=2, column=0)
 
+
 # contains widgets for commiting changes to db from buy revert membership section
-
-
 def revert_membership_submit(ID, confirm_id):
     # checking for blank entries
     if ID == "" or confirm_id == "":
@@ -259,37 +248,37 @@ def revert_membership_submit(ID, confirm_id):
                 f"DELETE FROM `library`.`members` WHERE (`MEMBER_ID` = '{ID}');")
             mydb.commit()
 
+
 # contains widgets fro issue book section
-
-
 def issue_book():
     options.grid_forget()
-
+    # creating global issue book frame
     global issue_book_frame
     issue_book_frame = Frame(content, bg="white")
-    issue_book_frame.grid(row=0, column=0)
+    issue_book_frame.grid(row=0, column=0, padx=100, pady=50)
 
+    # book id handel
     book_id_disable = Entry(issue_book_frame, border=0)
     book_id_disable.insert(INSERT, "BOOK ID")
     book_id_disable.configure(state="disable")
     book_id_disable.grid(row=0, column=0)
-
+    # book id entry
     book_id = Entry(issue_book_frame, border=2, width=40)
     book_id.grid(row=0, column=1)
-
+    # member id handel
     member_id_disable = Entry(issue_book_frame, border=0)
     member_id_disable.insert(INSERT, "MEMBER ID")
     member_id_disable.configure(state="disable")
     member_id_disable.grid(row=1, column=0)
-
+    # member id entry
     member_id = Entry(issue_book_frame, width=40, border=2)
     member_id.grid(row=1, column=1)
-
+    # date handel
     date_disable = Entry(issue_book_frame, border=0)
     date_disable.insert(INSERT, "ISSUE DATE")
     date_disable.configure(state="disable")
     date_disable.grid(row=2, column=0)
-
+    # date label
     date = Entry(issue_book_frame, border=2, width=40)
     date.grid(row=2, column=1)
 
@@ -303,37 +292,87 @@ def issue_book():
     back.grid(row=3, column=0)
 
 
+# contains widgets for commiting changes to db from issue book section
 def issue_book_submit(book_id, member_id, employee_id, date):
+    # if and of the entry widget is blank ;
     if book_id == "" or member_id == "" or employee_id == "" or date == "":
         empty = Entry(issue_book_frame, width=50)
         empty.insert(INSERT, "EMPTY NOT ALLOWED")
         empty.configure(state="disable")
         empty.grid(row=4, column=0, columnspan=2)
+    # all of the entrys has some content in it
     else:
-        issue_no = random.randint(0, 100000)
-        mycursor.execute(
-            f"""SELECT QUANTITY
-                FROM library.books
-                where BOOK_ID={book_id}; )""")
+        # checks if the book id entered in the entry exists in db
         try:
-            for quantity in mycursor:
-                if quantity > 0:
+            mycursor.execute(
+                f"""select QUANTITY
+                    from books
+                    where BOOK_ID={book_id}""")
+            for i in mycursor:
+                quantitys = i
+            quantity = quantitys[0]
+            # now the book does exist ; but this check if it is in stock
+            if quantity > 0:
+                # book exist
+                # there is atleast one left in stock as well
+                # now this checks if correct member id is mentioned
+                try:
+                    mycursor.execute(
+                        f"""select MEMBER_ID
+                            from members
+                            where MEMBER_ID={member_id}""")
+                    for i in mycursor:
+                        members = i
+                    # decreasing total number of books in stock by 1; coz the book is issued
                     quantity = quantity-1
-                    mycursor.execute(f"""UPDATE `library`.`books` SET `QUANTITY` = '1'
+                    mycursor.execute(f"""UPDATE `library`.`books` SET `QUANTITY` = '{quantity}'
                                         WHERE (`BOOK_ID` = '{book_id}');""")
+                    mydb.commit()
+                    # checks for correct date format;
                     try:
+                        issue_no = random.randint(0, 1000000)
                         mycursor.execute(
-                            f"INSERT INTO `library`.`issued_book` (`ISSUE_NO`, `ISSUED_DATE`, `BOOK_ID`, `MEMBER_ID`, `EMPLOYEE_ID`) VALUES({issue_no}, {date}, {book_id}, {member_id}, {employee_id})")
+                            f"INSERT INTO `library`.`issued_book` (`ISSUE_NO`, `ISSUED_DATE`, `BOOK_ID`, `MEMBER_ID`, `EMPLOYEE_ID`) VALUES('{issue_no}', '{date}', '{book_id}', '{member_id}', '{employee_id}')")
+                        mydb.commit()
+
+                        empty = Entry(issue_book_frame, width=60)
+                        empty.insert(
+                            INSERT, f"BOOK ISSUED SUCCESSFULLY, ISSUE NO:{issue_no}")
+                        empty.configure(state="disable")
+                        empty.grid(row=4, column=0, columnspan=2, pady=100)
+                    # incorrect date formate
                     except:
-                        print("incorrect member id")
-                else:
-                    print("book is not in stock")
+                        empty = Entry(issue_book_frame, width=60)
+                        empty.insert(
+                            INSERT, "INCORRECT DATE FORMAT ; USE YYYY-MM-DD FORMAT")
+                        empty.configure(state="disable")
+                        empty.grid(row=4, column=0, columnspan=2, pady=100)
+                # incorrect member id is written
+                except:
+                    empty = Entry(issue_book_frame, width=60)
+                    empty.insert(INSERT, "NO MEMBER WITH THIS ID FOUND")
+                    empty.configure(state="disable")
+                    empty.grid(row=4, column=0, columnspan=2, pady=100)
+            # it means all of this book are already issued by someone else
+            else:
+                empty = Entry(issue_book_frame, width=60)
+                empty.insert(INSERT, "THE BOOK IS OUT OF STOCK")
+                empty.configure(state="disable")
+                empty.grid(row=4, column=0, columnspan=2, pady=100)
+        # alerts if book id does not exist in our system ; i.e incorrect
         except:
-            print("book with this id does not exist")
+            empty = Entry(issue_book_frame, width=60)
+            empty.insert(INSERT, "NO BOOK WITH THIS ID FOUND")
+            empty.configure(state="disable")
+            empty.grid(row=4, column=0, columnspan=2, pady=100)
 
-    # return to main menu
+
+# contains widgets for return book section
+def return_book():
+    pass
 
 
+# function to return to main page
 def back2menu(num):
     # enter main menu from login page
     if num == 1:
@@ -350,9 +389,8 @@ def back2menu(num):
         issue_book_frame.grid_forget()
     main()
 
+
 # password and id check function
-
-
 def login_check():
     # initial both value no, get value from widgets , if value matche in db ,both converted to yes and redirection to menu
     both = "no"
@@ -379,9 +417,8 @@ def login_check():
         empty.configure(state="disable")
         empty.grid(row=3, column=0, columnspan=3, pady=100)
 
+
 # placing login widgets
-
-
 def login():
     login_frame.grid(row=1, column=0)
     login_text.grid(row=0, column=0)
