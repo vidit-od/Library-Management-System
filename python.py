@@ -294,7 +294,7 @@ def issue_book():
 
 # contains widgets for commiting changes to db from issue book section
 def issue_book_submit(book_id, member_id, employee_id, date):
-    # if and of the entry widget is blank ;
+    # if any of the entry widget is blank ;
     if book_id == "" or member_id == "" or employee_id == "" or date == "":
         empty = Entry(issue_book_frame, width=50)
         empty.insert(INSERT, "EMPTY NOT ALLOWED")
@@ -332,7 +332,7 @@ def issue_book_submit(book_id, member_id, employee_id, date):
                     try:
                         issue_no = random.randint(0, 1000000)
                         mycursor.execute(
-                            f"INSERT INTO `library`.`issued_book` (`ISSUE_NO`, `ISSUED_DATE`, `BOOK_ID`, `MEMBER_ID`, `EMPLOYEE_ID`) VALUES('{issue_no}', '{date}', '{book_id}', '{member_id}', '{employee_id}')")
+                            f"INSERT INTO `library`.`issued_book` (`ISSUE_NO`, `ISSUED_DATE`, `BOOK_ID`, `MEMBER_ID`, `EMPLOYEE_ID`, `status`) VALUES('{issue_no}', '{date}', '{book_id}', '{member_id}', '{employee_id}','issued')")
                         mydb.commit()
 
                         empty = Entry(issue_book_frame, width=60)
@@ -369,10 +369,83 @@ def issue_book_submit(book_id, member_id, employee_id, date):
 
 # contains widgets for return book section
 def return_book():
-    pass
+    options.grid_forget()
+    global return_book_frame
+    return_book_frame = Frame(content, bg="white")
+    return_book_frame.grid(row=0, column=0, padx=100, pady=50)
+
+    # issue number handel
+    issue_number_disable = Entry(return_book_frame, border=0)
+    issue_number_disable.insert(INSERT, "ISSUE NUMBER")
+    issue_number_disable.configure(state="disable")
+    issue_number_disable.grid(row=0, column=0)
+    # issue number entry
+    issue_number = Entry(return_book_frame, border=2, width=40)
+    issue_number.grid(row=0, column=1)
+    # return date handel
+    return_date_disable = Entry(return_book_frame, border=0)
+    return_date_disable.insert(INSERT, "RETURN DATE")
+    return_date_disable.configure(state="disable")
+    return_date_disable.grid(row=2, column=0)
+    # return date label
+    return_date = Entry(return_book_frame, border=2, width=40)
+    return_date.grid(row=2, column=1)
+
+    # submit button
+    submit = Button(return_book_frame, text="Submit",
+                    command=lambda: return_book_submit(issue_number.get(), return_date.get()))
+    submit.grid(row=3, column=1)
+
+    # back to menu button
+    back = Button(return_book_frame, text="BACK", command=lambda: back2menu(6))
+    back.grid(row=3, column=0)
+
+# return book widget
 
 
+def return_book_submit(issue_number, return_date):
+    # if any of the entry widgets are empty
+    if issue_number == "" or return_date == "":
+        empty = Entry(return_book_frame, width=50)
+        empty.insert(INSERT, "EMPTY NOT ALLOWED")
+        empty.configure(state="disable")
+        empty.grid(row=4, column=0, columnspan=2)
+    else:
+        try:
+            # from the issue number, we find book id of issued book
+            mycursor.execute(f"""SELECT BOOK_ID
+                                FROM library.issued_book 
+                                where ISSUE_NO={issue_number};""")
+            for i in mycursor:
+                book_ids = i
+            book_id = book_ids[0]
+            print(book_id)
+            # increase the quantity of that book in stocks
+            mycursor.execute(f"""SELECT quantity 
+                                FROM library.books 
+                                where BOOK_ID={book_id};""")
+            for i in mycursor:
+                quantitys = i
+            quantity = quantitys[0]
+            print(quantity)
+            mycursor.execute(
+                f"UPDATE `library`.`books` SET `QUANTITY` = '{quantity+1}' WHERE (`BOOK_ID` = '{book_id}');")
+            mycursor.execute(
+                f"UPDATE `library`.`issued_book` SET `status` = 'returned' WHERE (`ISSUE_NO` = '{issue_number}');")
+            return_id = random.randint(0, 1000000)
+            mycursor.execute(
+                f"INSERT INTO `library`.`returned_books` (`RETURN_NO`, `RETURNED_DATE`, `ISSUE_NO`) VALUES('{return_id}', '{return_date}', '{issue_number}')")
+            mydb.commit()
+
+        except:
+            # if the issue number does not exist in the database
+            empty = Entry(return_book_frame, width=50)
+            empty.insert(INSERT, "ISSUE number does not match")
+            empty.configure(state="disable")
+            empty.grid(row=4, column=0, columnspan=2)
 # function to return to main page
+
+
 def back2menu(num):
     # enter main menu from login page
     if num == 1:
@@ -380,13 +453,18 @@ def back2menu(num):
     # enter menu page from add books pageS
     elif num == 2:
         add_book_frame.grid_forget()
-    # enter menue page from buy membership page
+    # enter menu page from buy membership page
     elif num == 3:
         buy_membership_frame.grid_forget()
+    # enter menu page from revert membershi page
     elif num == 4:
         revert_membership_frame.grid_forget()
+    # enter menu page from issue book page
     elif num == 5:
         issue_book_frame.grid_forget()
+    # enter menu page from return book page
+    elif num == 6:
+        return_book_frame.grid_forget()
     main()
 
 
