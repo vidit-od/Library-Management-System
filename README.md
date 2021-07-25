@@ -23,3 +23,9 @@ I used Mysql workbench to create my database. This project was built on a local 
 In my previous repo related to GUI's with tkinter(iOS themed calculator) I focused heavily on styling the interface. But now that I understood the concepts regarding styling it seemed to be a waste of time to repeat the whole procedure for this app. Thus going simple here !! 
 
 ## Previews
+* Login Interface
+![Screenshot 2021-07-22 223953](https://user-images.githubusercontent.com/82703629/126908402-eba3f434-a7b1-49da-af5c-d8463d985e5d.jpg)
+* Home interface
+
+
+![Screenshot 2021-07-22 224032](https://user-images.githubusercontent.com/82703629/126908417-4584197b-9e9b-4591-ab3e-31d41bdba584.jpg)
